@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* =========================================================
+   CHARTE « CIEL & TERRE »
+   Les couleurs de la plateforme, déclarées une fois ici.
+   En v4, chaque variable --color-XXX crée automatiquement
+   les classes Tailwind : bg-XXX, text-XXX, border-XXX...
+   Ex : --color-bleu  ->  bg-bleu, text-bleu, border-bleu
+   ========================================================= */
+@theme {
+  /* Bleu Savoir — couleur principale (confiance, sérieux) */
+  --color-bleu-900: #12325C;
+  --color-bleu:     #1D4E89;   /* la principale, nom court */
+  --color-bleu-500: #3A6EA5;
+  --color-bleu-100: #E7EFF8;
+
+  /* Or Sahel — accent principal (chaleur, accueil) */
+  --color-or-600: #C67C2E;
+  --color-or:     #E6A130;     /* l'accent, nom court */
+  --color-or-100: #FBEFD6;
+
+  /* Terre — accent secondaire (ancrage, à doser) */
+  --color-terre:     #A9552F;
+  --color-terre-100: #F4E3D9;
+
+  /* Vert Mali — réussite, « nouveau » (ponctuel) */
+  --color-vert:     #2F7A4F;
+  --color-vert-100: #E1F0E7;
+
+  /* Neutres chauds — fonds et textes */
+  --color-encre: #26221E;      /* texte principal */
+  --color-gris:  #6E645A;      /* texte secondaire */
+  --color-ligne: #E9E0D2;      /* bordures */
+  --color-sable: #FBF7F0;      /* fond général */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Réglages de base du corps de page.
+   Fond sable + texte encre = le duo chaud de ta charte,
+   appliqué par défaut à tout le site. */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-sable);
+  color: var(--color-encre);
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
 }
