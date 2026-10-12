@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { inscription, connexion, ErreurAPI } from "@/lib/auth";
+import { inscription, ErreurAPI } from "@/lib/auth";
 import ChampTelephone, { numeroComplet } from "@/components/Champtelephone";
 
 export default function PageInscription() {
@@ -58,7 +58,7 @@ export default function PageInscription() {
 
     setEnvoi(true);
     try {
-      // On envoie le numéro au format international complet : +22370000000
+      // Numéro au format international complet : +22370000000
       const tel = numeroComplet(form.telephone);
       await inscription({
         first_name: form.first_name,
@@ -67,10 +67,14 @@ export default function PageInscription() {
         password: form.password,
         email: form.email || undefined,
       });
-      await connexion(tel, form.password);
 
-      setSucces(true);
-      setTimeout(() => router.push("/ressources"), 1600);
+      // On mémorise le numéro et le prénom pour la page de vérification,
+      // puis on redirige vers la saisie du code SMS.
+      try {
+        sessionStorage.setItem("verif_telephone", tel);
+        sessionStorage.setItem("verif_prenom", form.first_name);
+      } catch {}
+      router.push("/verification");
     } catch (err) {
       if (err instanceof ErreurAPI) {
         const premier = Object.values(err.details)[0];

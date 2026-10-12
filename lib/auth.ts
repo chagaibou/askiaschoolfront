@@ -1,20 +1,18 @@
 // =========================================================
 // lib/auth.ts
-// Toute la logique d'AUTHENTIFICATION passe par ici :
-// inscription, connexion, et gestion du token dans localStorage.
-// Séparé de api.ts (les ressources) car c'est un domaine distinct.
+// Toute l'authentification : inscription, vérification SMS, connexion,
+// gestion du token (localStorage), téléchargement protégé.
 // =========================================================
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// Clés sous lesquelles on range les infos dans le navigateur.
 const CLE_ACCESS = "askia_access";
 const CLE_REFRESH = "askia_refresh";
 const CLE_USER = "askia_user";
 
 
 // ---------------------------------------------------------
-// LES TYPES
+// TYPES
 // ---------------------------------------------------------
 export interface Utilisateur {
   id: number;
@@ -25,7 +23,6 @@ export interface Utilisateur {
   role: string;
 }
 
-// Ce qu'on envoie à l'inscription (correspond à ton RegisterSerializer).
 export interface DonneesInscription {
   telephone: string;
   password: string;
@@ -36,10 +33,34 @@ export interface DonneesInscription {
 
 
 // ---------------------------------------------------------
-// inscription()
-// POST /auth/register/ — crée un compte élève.
+// Erreur maison qui transporte le détail renvoyé par l'API.
 // ---------------------------------------------------------
-export async function inscription(donnees: DonneesInscription): Promise<Utilisateur> {
+export class ErreurAPI extends Error {
+  details: Record<string, string[]>;
+  constructor(message: string, details: Record<string, string[]> = {}) {
+    super(message);
+    this.name = "ErreurAPI";
+    this.details = details;
+  }
+}
+
+
+// Range la session (tokens + profil) dans le navigateur.
+function stockerSession(data: { access: string; refresh: string; user: Utilisateur }) {
+  localStorage.setItem(CLE_ACCESS, data.access);
+  localStorage.setItem(CLE_REFRESH, data.refresh);
+  localStorage.setItem(CLE_USER, JSON.stringify(data.user));
+}
+
+
+// ---------------------------------------------------------
+// inscription()
+// Crée un compte INACTIF. NE connecte PAS (il faut d'abord vérifier
+// le code SMS). Renvoie si le SMS a bien été envoyé.
+// ---------------------------------------------------------
+export async function inscription(
+  donnees: DonneesInscription
+): Promise<{ sms_envoye: boolean }> {
   const reponse = await fetch(`${API_URL}/auth/register/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -47,20 +68,62 @@ export async function inscription(donnees: DonneesInscription): Promise<Utilisat
   });
 
   if (!reponse.ok) {
-    // L'API renvoie les erreurs champ par champ (ex : téléphone déjà pris,
-    // mot de passe trop faible). On les remonte pour les afficher.
     const erreurs = await reponse.json().catch(() => ({}));
     throw new ErreurAPI("Inscription impossible.", erreurs);
   }
 
-  return reponse.json();
+  const data = await reponse.json();
+  return { sms_envoye: Boolean(data.sms_envoye) };
+}
+
+
+// ---------------------------------------------------------
+// verifierCode()
+// Envoie le code reçu par SMS. Si OK, le compte est activé et l'API
+// renvoie les tokens -> on connecte l'utilisateur dans la foulée.
+// ---------------------------------------------------------
+export async function verifierCode(
+  telephone: string,
+  code: string
+): Promise<Utilisateur> {
+  const reponse = await fetch(`${API_URL}/auth/verifier-code/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telephone, code }),
+  });
+
+  const data = await reponse.json().catch(() => ({}));
+  if (!reponse.ok) {
+    throw new ErreurAPI(data.detail || "Code invalide.");
+  }
+
+  stockerSession(data); // { access, refresh, user }
+  return data.user;
+}
+
+
+// ---------------------------------------------------------
+// renvoyerCode()
+// Demande un nouveau code SMS. Renvoie le message de l'API
+// (succès, ou refus si trop de demandes).
+// ---------------------------------------------------------
+export async function renvoyerCode(telephone: string): Promise<string> {
+  const reponse = await fetch(`${API_URL}/auth/renvoyer-code/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telephone }),
+  });
+
+  const data = await reponse.json().catch(() => ({}));
+  if (!reponse.ok) {
+    throw new ErreurAPI(data.detail || "Impossible de renvoyer le code.");
+  }
+  return data.detail || "Un nouveau code a été envoyé.";
 }
 
 
 // ---------------------------------------------------------
 // connexion()
-// POST /auth/login/ — renvoie access + refresh + user.
-// On range le tout dans localStorage pour "rester connecté".
 // ---------------------------------------------------------
 export async function connexion(
   telephone: string,
@@ -78,16 +141,13 @@ export async function connexion(
   }
 
   const data = await reponse.json();
-  // data = { access, refresh, user }
-  localStorage.setItem(CLE_ACCESS, data.access);
-  localStorage.setItem(CLE_REFRESH, data.refresh);
-  localStorage.setItem(CLE_USER, JSON.stringify(data.user));
+  stockerSession(data);
   return data.user;
 }
 
 
 // ---------------------------------------------------------
-// deconnexion() — efface tout du navigateur.
+// Utilitaires
 // ---------------------------------------------------------
 export function deconnexion(): void {
   localStorage.removeItem(CLE_ACCESS);
@@ -95,68 +155,36 @@ export function deconnexion(): void {
   localStorage.removeItem(CLE_USER);
 }
 
-
-// ---------------------------------------------------------
-// Petits utilitaires que les pages utiliseront.
-// ---------------------------------------------------------
-
-// Le token d'accès (pour les requêtes protégées, ex : téléchargement).
 export function getToken(): string | null {
-  if (typeof window === "undefined") return null; // sécurité côté serveur
+  if (typeof window === "undefined") return null;
   return localStorage.getItem(CLE_ACCESS);
 }
 
-// L'utilisateur connecté (ou null). Sert à afficher son nom, etc.
 export function getUtilisateur(): Utilisateur | null {
   if (typeof window === "undefined") return null;
   const brut = localStorage.getItem(CLE_USER);
   return brut ? JSON.parse(brut) : null;
 }
 
-// Est-il connecté ?
 export function estConnecte(): boolean {
   return getToken() !== null;
 }
 
 
 // ---------------------------------------------------------
-// Une erreur maison qui transporte le détail renvoyé par l'API,
-// pour afficher des messages précis dans les formulaires.
+// telechargerRessource() — téléchargement protégé par token.
 // ---------------------------------------------------------
-export class ErreurAPI extends Error {
-  details: Record<string, string[]>;
-  constructor(message: string, details: Record<string, string[]> = {}) {
-    super(message);
-    this.name = "ErreurAPI";
-    this.details = details;
-  }
-}
-
-
-
-export async function telechargerRessource(
-  id: number,
-  titre: string
-): Promise<void> {
+export async function telechargerRessource(id: number, titre: string): Promise<void> {
   const token = getToken();
-  if (!token) {
-    throw new Error("NON_CONNECTE");
-  }
- 
+  if (!token) throw new Error("NON_CONNECTE");
+
   const reponse = await fetch(`${API_URL}/ressources/${id}/telecharger/`, {
-    headers: { Authorization: `Bearer ${token}` }, // ← LA clé : le token
+    headers: { Authorization: `Bearer ${token}` },
   });
- 
-  if (reponse.status === 401) {
-    // Token expiré ou invalide.
-    throw new Error("NON_CONNECTE");
-  }
-  if (!reponse.ok) {
-    throw new Error("Le téléchargement a échoué.");
-  }
- 
-  // On récupère le fichier sous forme de "blob" (données binaires),
-  // puis on force le navigateur à l'enregistrer.
+
+  if (reponse.status === 401) throw new Error("NON_CONNECTE");
+  if (!reponse.ok) throw new Error("Le téléchargement a échoué.");
+
   const blob = await reponse.blob();
   const url = window.URL.createObjectURL(blob);
   const lien = document.createElement("a");
@@ -165,6 +193,5 @@ export async function telechargerRessource(
   document.body.appendChild(lien);
   lien.click();
   lien.remove();
-  window.URL.revokeObjectURL(url); // on libère la mémoire
+  window.URL.revokeObjectURL(url);
 }
- 
