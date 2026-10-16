@@ -195,3 +195,46 @@ export async function telechargerRessource(id: number, titre: string): Promise<v
   lien.remove();
   window.URL.revokeObjectURL(url);
 }
+
+
+// Demande un code SMS pour réinitialiser le mot de passe.
+export async function demanderReset(telephone: string): Promise<string> {
+  const reponse = await fetch(`${API_URL}/auth/demander-reset/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telephone }),
+  });
+  const data = await reponse.json().catch(() => ({}));
+  if (!reponse.ok) {
+    throw new ErreurAPI(data.detail || "Demande impossible.");
+  }
+  return data.detail || "Si ce compte existe, un code a été envoyé.";
+}
+ 
+// Vérifie le code et change le mot de passe.
+export async function reinitialiserMotDePasse(
+  telephone: string,
+  code: string,
+  nouveau_mot_de_passe: string
+): Promise<string> {
+  const reponse = await fetch(`${API_URL}/auth/reinitialiser/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telephone, code, nouveau_mot_de_passe }),
+  });
+  const data = await reponse.json().catch(() => ({}));
+  if (!reponse.ok) {
+    throw new ErreurAPI(data.detail || "Réinitialisation impossible.");
+  }
+  return data.detail || "Mot de passe réinitialisé.";
+}
+ 
+
+
+
+
+
+
+
+
+
