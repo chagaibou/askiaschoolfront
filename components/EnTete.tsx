@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { getUtilisateur, deconnexion, type Utilisateur } from "@/lib/auth";
 
@@ -55,7 +56,9 @@ export default function EnTete() {
     <header className="bg-bleu-900 text-white sticky top-0 z-20">
       <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 font-bold text-lg">
-          <span className="w-7 h-7 rounded-lg bg-or inline-block" />
+          <span className="w-9 h-9 rounded-lg bg-white p-1 inline-flex items-center justify-center">
+            <Image src="/logo-askia-icone.png" alt="Logo AskiaSchool" width={301} height={340} className="h-full w-auto" priority />
+          </span>
           AskiaSchool
         </Link>
 

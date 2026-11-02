@@ -85,36 +85,63 @@ export default function Accueil() {
       </section>
 
       {/* ---------- COMMENT ÇA MARCHE ---------- */}
-      <section className="bg-white border-y border-ligne">
-        <div className="max-w-5xl mx-auto px-6 py-16">
-          <div className="grid sm:grid-cols-3 gap-6">
-            <div className="border border-ligne rounded-xl p-6">
-              <div className="w-10 h-10 rounded-lg bg-or-100 mb-4" />
-              <h3 className="font-bold text-lg mb-1.5">Cherche</h3>
-              <p className="text-sm text-gris">
-                Filtre par examen, filière, matière et année pour trouver le
-                sujet qu&apos;il te faut en quelques secondes.
-              </p>
-            </div>
-            <div className="border border-ligne rounded-xl p-6">
-              <div className="w-10 h-10 rounded-lg bg-vert-100 mb-4" />
-              <h3 className="font-bold text-lg mb-1.5">Télécharge</h3>
-              <p className="text-sm text-gris">
-                Crée un compte gratuit avec ton numéro et télécharge les sujets
-                et leurs corrigés.
-              </p>
-            </div>
-            <div className="border border-ligne rounded-xl p-6">
-              <div className="w-10 h-10 rounded-lg bg-bleu-100 mb-4" />
-              <h3 className="font-bold text-lg mb-1.5">Révise</h3>
-              <p className="text-sm text-gris">
-                Entraîne-toi sur les vrais sujets des années précédentes et
-                arrive confiant le jour J.
-              </p>
-            </div>
-          </div>
+   
+<section className="bg-white border-y border-ligne">
+  <div className="max-w-5xl mx-auto px-6 py-16">
+    <div className="grid sm:grid-cols-3 gap-6">
+
+      {/* Cherche — loupe */}
+      <div className="border border-ligne rounded-xl p-6">
+        <div className="w-12 h-12 rounded-xl bg-or-100 flex items-center justify-center mb-4">
+          <svg className="w-6 h-6 text-or-600" fill="none" viewBox="0 0 24 24"
+               stroke="currentColor" strokeWidth={2}>
+            <circle cx="11" cy="11" r="7" />
+            <line x1="21" y1="21" x2="16.5" y2="16.5" strokeLinecap="round" />
+          </svg>
         </div>
-      </section>
+        <h3 className="font-bold text-lg mb-1.5">Cherche</h3>
+        <p className="text-sm text-gris">
+          Filtre par examen, filière, matière et année pour trouver le
+          sujet qu&apos;il te faut en quelques secondes.
+        </p>
+      </div>
+
+      {/* Télécharge — flèche vers le bas */}
+      <div className="border border-ligne rounded-xl p-6">
+        <div className="w-12 h-12 rounded-xl bg-vert-100 flex items-center justify-center mb-4">
+          <svg className="w-6 h-6 text-vert" fill="none" viewBox="0 0 24 24"
+               stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="4" x2="12" y2="15" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="5" y1="20" x2="19" y2="20" />
+          </svg>
+        </div>
+        <h3 className="font-bold text-lg mb-1.5">Télécharge</h3>
+        <p className="text-sm text-gris">
+          Crée un compte gratuit avec ton numéro et télécharge les sujets
+          et leurs corrigés.
+        </p>
+      </div>
+
+      {/* Révise — livre ouvert */}
+      <div className="border border-ligne rounded-xl p-6">
+        <div className="w-12 h-12 rounded-xl bg-bleu-100 flex items-center justify-center mb-4">
+          <svg className="w-6 h-6 text-bleu" fill="none" viewBox="0 0 24 24"
+               stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 6c-2-1.3-4.5-2-7-2v13c2.5 0 5 .7 7 2 2-1.3 4.5-2 7-2V4c-2.5 0-5 .7-7 2z" />
+            <line x1="12" y1="6" x2="12" y2="21" />
+          </svg>
+        </div>
+        <h3 className="font-bold text-lg mb-1.5">Révise</h3>
+        <p className="text-sm text-gris">
+          Entraîne-toi sur les vrais sujets des années précédentes et
+          arrive confiant le jour J.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
 
       {/* ---------- NOS PARTENAIRES ---------- */}
       <section className="max-w-5xl mx-auto px-6 py-16">
